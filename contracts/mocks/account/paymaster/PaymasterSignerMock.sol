@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC4337Utils, PackedUserOperation} from "@openzeppelin/contracts/account/utils/draft-ERC4337Utils.sol";
+import {ERC4337Utils, PackedUserOperation} from "@openzeppelin/contracts/account/utils/ERC4337Utils.sol";
 import {SignerECDSA} from "@openzeppelin/contracts/utils/cryptography/signers/SignerECDSA.sol";
 import {PaymasterSigner} from "../../../account/paymaster/PaymasterSigner.sol";
 
