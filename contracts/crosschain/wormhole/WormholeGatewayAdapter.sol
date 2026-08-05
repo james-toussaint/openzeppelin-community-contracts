@@ -71,7 +71,7 @@ contract WormholeGatewayAdapter is IERC7786GatewaySource, IWormholeReceiver, Own
     error MessageAlreadyExecuted(uint256 chainId, bytes32 outboxId);
 
     modifier onlyWormholeRelayer() {
-        require(msg.sender == address(_wormholeRelayer), UnauthorizedCaller(msg.sender));
+        require(msg.sender == relayer(), UnauthorizedCaller(msg.sender));
         _;
     }
 
