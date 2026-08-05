@@ -1,0 +1,1025 @@
+:github-icon: pass:[<svg class="icon"><use href="#github-icon"/></svg>]
+:ERC7786OpenBridge: pass:normal[xref:crosschain.adoc#ERC7786OpenBridge[`ERC7786OpenBridge`]]
+:ERC7786Attributes: pass:normal[xref:crosschain.adoc#ERC7786Attributes[`ERC7786Attributes`]]
+:AxelarGatewayAdapter: pass:normal[xref:crosschain.adoc#AxelarGatewayAdapter[`AxelarGatewayAdapter`]]
+:WormholeGatewayAdapter: pass:normal[xref:crosschain.adoc#WormholeGatewayAdapter[`WormholeGatewayAdapter`]]
+= Crosschain
+
+[.readme-notice]
+NOTE: This document is better viewed at https://docs.openzeppelin.com/community-contracts/api/crosschain
+
+Gateways are contracts that enable cross-chain communication. These can either be a message source or a destination according to ERC-7786.
+
+ * {ERC7786OpenBridge}: ERC-7786 "N out of M" gateway. Sends a message through M gateways and executes on the destination if N received it.
+ * {ERC7786Attributes}: Library of helpers to parse and process ERC-7786 attributes.
+
+Developers can access interoperability protocols through gateway adapters. The library includes the following gateway adapters:
+
+ * {AxelarGatewayAdapter}: ERC-7786 gateway adapter for Axelar.
+ * {WormholeGatewayAdapter}: ERC-7786 gateway adapter for Wormhole (EVM chains only).
+
+== Gateways
+
+:Outbox: pass:normal[xref:#ERC7786OpenBridge-Outbox[`++Outbox++`]]
+:Tracker: pass:normal[xref:#ERC7786OpenBridge-Tracker[`++Tracker++`]]
+:OutboxDetails: pass:normal[xref:#ERC7786OpenBridge-OutboxDetails-bytes32-struct-ERC7786OpenBridge-Outbox---[`++OutboxDetails++`]]
+:Received: pass:normal[xref:#ERC7786OpenBridge-Received-bytes32-address-[`++Received++`]]
+:ExecutionSuccess: pass:normal[xref:#ERC7786OpenBridge-ExecutionSuccess-bytes32-[`++ExecutionSuccess++`]]
+:ExecutionFailed: pass:normal[xref:#ERC7786OpenBridge-ExecutionFailed-bytes32-[`++ExecutionFailed++`]]
+:GatewayAdded: pass:normal[xref:#ERC7786OpenBridge-GatewayAdded-address-[`++GatewayAdded++`]]
+:GatewayRemoved: pass:normal[xref:#ERC7786OpenBridge-GatewayRemoved-address-[`++GatewayRemoved++`]]
+:ThresholdUpdated: pass:normal[xref:#ERC7786OpenBridge-ThresholdUpdated-uint8-[`++ThresholdUpdated++`]]
+:UnsupportedNativeTransfer: pass:normal[xref:#ERC7786OpenBridge-UnsupportedNativeTransfer--[`++UnsupportedNativeTransfer++`]]
+:ERC7786OpenBridgeInvalidCrosschainSender: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeInvalidCrosschainSender--[`++ERC7786OpenBridgeInvalidCrosschainSender++`]]
+:ERC7786OpenBridgeAlreadyExecuted: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeAlreadyExecuted--[`++ERC7786OpenBridgeAlreadyExecuted++`]]
+:ERC7786OpenBridgeRemoteNotRegistered: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeRemoteNotRegistered-bytes2-bytes-[`++ERC7786OpenBridgeRemoteNotRegistered++`]]
+:ERC7786OpenBridgeGatewayAlreadyRegistered: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeGatewayAlreadyRegistered-address-[`++ERC7786OpenBridgeGatewayAlreadyRegistered++`]]
+:ERC7786OpenBridgeGatewayNotRegistered: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeGatewayNotRegistered-address-[`++ERC7786OpenBridgeGatewayNotRegistered++`]]
+:ERC7786OpenBridgeThresholdViolation: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeThresholdViolation--[`++ERC7786OpenBridgeThresholdViolation++`]]
+:ERC7786OpenBridgeInvalidExecutionReturnValue: pass:normal[xref:#ERC7786OpenBridge-ERC7786OpenBridgeInvalidExecutionReturnValue--[`++ERC7786OpenBridgeInvalidExecutionReturnValue++`]]
+:RemoteRegistered: pass:normal[xref:#ERC7786OpenBridge-RemoteRegistered-bytes-[`++RemoteRegistered++`]]
+:constructor: pass:normal[xref:#ERC7786OpenBridge-constructor-address-address---uint8-[`++constructor++`]]
+:supportsAttribute: pass:normal[xref:#ERC7786OpenBridge-supportsAttribute-bytes4-[`++supportsAttribute++`]]
+:sendMessage: pass:normal[xref:#ERC7786OpenBridge-sendMessage-bytes-bytes-bytes---[`++sendMessage++`]]
+:receiveMessage: pass:normal[xref:#ERC7786OpenBridge-receiveMessage-bytes32-bytes-bytes-[`++receiveMessage++`]]
+:getGateways: pass:normal[xref:#ERC7786OpenBridge-getGateways--[`++getGateways++`]]
+:getThreshold: pass:normal[xref:#ERC7786OpenBridge-getThreshold--[`++getThreshold++`]]
+:getRemoteBridge: pass:normal[xref:#ERC7786OpenBridge-getRemoteBridge-bytes-[`++getRemoteBridge++`]]
+:getRemoteBridge: pass:normal[xref:#ERC7786OpenBridge-getRemoteBridge-bytes2-bytes-[`++getRemoteBridge++`]]
+:addGateway: pass:normal[xref:#ERC7786OpenBridge-addGateway-address-[`++addGateway++`]]
+:removeGateway: pass:normal[xref:#ERC7786OpenBridge-removeGateway-address-[`++removeGateway++`]]
+:setThreshold: pass:normal[xref:#ERC7786OpenBridge-setThreshold-uint8-[`++setThreshold++`]]
+:registerRemoteBridge: pass:normal[xref:#ERC7786OpenBridge-registerRemoteBridge-bytes-[`++registerRemoteBridge++`]]
+:pause: pass:normal[xref:#ERC7786OpenBridge-pause--[`++pause++`]]
+:unpause: pass:normal[xref:#ERC7786OpenBridge-unpause--[`++unpause++`]]
+:sweep: pass:normal[xref:#ERC7786OpenBridge-sweep-address-payable-[`++sweep++`]]
+:_addGateway: pass:normal[xref:#ERC7786OpenBridge-_addGateway-address-[`++_addGateway++`]]
+:_removeGateway: pass:normal[xref:#ERC7786OpenBridge-_removeGateway-address-[`++_removeGateway++`]]
+:_setThreshold: pass:normal[xref:#ERC7786OpenBridge-_setThreshold-uint8-[`++_setThreshold++`]]
+:_registerRemoteBridge: pass:normal[xref:#ERC7786OpenBridge-_registerRemoteBridge-bytes-[`++_registerRemoteBridge++`]]
+
+[.contract]
+[[ERC7786OpenBridge]]
+=== `++ERC7786OpenBridge++` link:https://github.com/OpenZeppelin/openzeppelin-community-contracts/blob/master/contracts/crosschain/ERC7786OpenBridge.sol[{github-icon},role=heading-link]
+
+[.hljs-theme-light.nopadding]
+```solidity
+import "@openzeppelin/community-contracts/crosschain/ERC7786OpenBridge.sol";
+```
+
+N of M gateway: Sends your message through M independent gateways. It will be delivered to the recipient by an
+equivalent bridge on the destination chain if N of the M gateways agree.
+
+[.contract-index]
+.Functions
+--
+* `++constructor(owner_, gateways_, threshold_)++`
+* `++supportsAttribute()++`
+* `++sendMessage(recipient, payload, attributes)++`
+* `++receiveMessage(, sender, payload)++`
+* `++getGateways()++`
+* `++getThreshold()++`
+* `++getRemoteBridge(chain)++`
+* `++getRemoteBridge(chainType, chainReference)++`
+* `++addGateway(gateway)++`
+* `++removeGateway(gateway)++`
+* `++setThreshold(newThreshold)++`
+* `++registerRemoteBridge(bridge)++`
+* `++pause()++`
+* `++unpause()++`
+* `++sweep(to)++`
+* `++_addGateway(gateway)++`
+* `++_removeGateway(gateway)++`
+* `++_setThreshold(newThreshold)++`
+* `++_registerRemoteBridge(bridge)++`
+
+[.contract-subindex-inherited]
+.Pausable
+* `++paused()++`
+* `++_requireNotPaused()++`
+* `++_requirePaused()++`
+* `++_pause()++`
+* `++_unpause()++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++owner()++`
+* `++_checkOwner()++`
+* `++renounceOwnership()++`
+* `++transferOwnership(newOwner)++`
+* `++_transferOwnership(newOwner)++`
+
+[.contract-subindex-inherited]
+.IERC7786Recipient
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+
+--
+
+[.contract-index]
+.Events
+--
+* `++OutboxDetails(sendId, outbox)++`
+* `++Received(receiveId, gateway)++`
+* `++ExecutionSuccess(receiveId)++`
+* `++ExecutionFailed(receiveId)++`
+* `++GatewayAdded(gateway)++`
+* `++GatewayRemoved(gateway)++`
+* `++ThresholdUpdated(threshold)++`
+* `++RemoteRegistered(remote)++`
+
+[.contract-subindex-inherited]
+.Pausable
+* `++Paused(account)++`
+* `++Unpaused(account)++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnershipTransferred(previousOwner, newOwner)++`
+
+[.contract-subindex-inherited]
+.IERC7786Recipient
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++MessageSent(sendId, sender, recipient, payload, value, attributes)++`
+
+--
+
+[.contract-index]
+.Errors
+--
+* `++UnsupportedNativeTransfer()++`
+* `++ERC7786OpenBridgeInvalidCrosschainSender()++`
+* `++ERC7786OpenBridgeAlreadyExecuted()++`
+* `++ERC7786OpenBridgeRemoteNotRegistered(chainType, chainReference)++`
+* `++ERC7786OpenBridgeGatewayAlreadyRegistered(gateway)++`
+* `++ERC7786OpenBridgeGatewayNotRegistered(gateway)++`
+* `++ERC7786OpenBridgeThresholdViolation()++`
+* `++ERC7786OpenBridgeInvalidExecutionReturnValue()++`
+
+[.contract-subindex-inherited]
+.Pausable
+* `++EnforcedPause()++`
+* `++ExpectedPause()++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnableUnauthorizedAccount(account)++`
+* `++OwnableInvalidOwner(owner)++`
+
+[.contract-subindex-inherited]
+.IERC7786Recipient
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++UnsupportedAttribute(selector)++`
+
+--
+
+[.contract-item]
+[[ERC7786OpenBridge-constructor-address-address---uint8-]]
+==== `[.contract-item-name]#++constructor++#++(address owner_, address[] gateways_, uint8 threshold_)++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-supportsAttribute-bytes4-]]
+==== `[.contract-item-name]#++supportsAttribute++#++(bytes4) → bool++` [.item-kind]#public#
+
+Getter to check whether an attribute is supported or not.
+
+[.contract-item]
+[[ERC7786OpenBridge-sendMessage-bytes-bytes-bytes---]]
+==== `[.contract-item-name]#++sendMessage++#++(bytes recipient, bytes payload, bytes[] attributes) → bytes32 sendId++` [.item-kind]#public#
+
+Using memory instead of calldata avoids stack too deep errors
+
+[.contract-item]
+[[ERC7786OpenBridge-receiveMessage-bytes32-bytes-bytes-]]
+==== `[.contract-item-name]#++receiveMessage++#++(bytes32, bytes sender, bytes payload) → bytes4++` [.item-kind]#public#
+
+This function serves a dual purpose:
+
+It will be called by ERC-7786 gateways with message coming from the the corresponding bridge on the source
+chain. These "signals" are tracked until the threshold is reached. At that point the message is sent to the
+destination.
+
+It can also be called by anyone (including an ERC-7786 gateway) to retry the execution. This can be useful if
+the automatic execution (that is triggered when the threshold is reached) fails, and someone wants to retry it.
+
+When a message is forwarded by a known gateway, a {Received} event is emitted. If a known gateway calls this
+function more than once (for a given message), only the first call is counts toward the threshold and emits an
+{Received} event.
+
+This function revert if:
+
+* the message is not properly formatted or does not originate from the registered bridge on the source
+  chain.
+* someone tries re-execute a message that was already successfully delivered. This includes gateways that call
+  this function a second time with a message that was already executed.
+* the execution of the message (on the {IERC7786Recipient} recipient) is successful but fails to return the
+  executed value.
+
+This function does not revert if:
+
+* A known gateway delivers a message for the first time, and that message was already executed. In that case
+  the message is NOT re-executed, and the correct "magic value" is returned.
+* The execution of the message (on the {IERC7786Recipient} recipient) reverts. In that case a {ExecutionFailed}
+  event is emitted.
+
+This function emits:
+
+* {Received} when a known ERC-7786 gateway delivers a message for the first time.
+* {ExecutionSuccess} when a message is successfully delivered to the recipient.
+* {ExecutionFailed} when a message delivery to the recipient reverted (for example because of OOG error).
+
+NOTE: interface requires this function to be payable. Even if we don't expect any value, a gateway may pass
+some value for unknown reason. In that case we want to register this gateway having delivered the message and
+not revert. Any value accrued that way can be recovered by the admin using the {sweep} function.
+
+[.contract-item]
+[[ERC7786OpenBridge-getGateways--]]
+==== `[.contract-item-name]#++getGateways++#++() → address[]++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-getThreshold--]]
+==== `[.contract-item-name]#++getThreshold++#++() → uint8++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-getRemoteBridge-bytes-]]
+==== `[.contract-item-name]#++getRemoteBridge++#++(bytes chain) → bytes++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-getRemoteBridge-bytes2-bytes-]]
+==== `[.contract-item-name]#++getRemoteBridge++#++(bytes2 chainType, bytes chainReference) → bytes++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-addGateway-address-]]
+==== `[.contract-item-name]#++addGateway++#++(address gateway)++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-removeGateway-address-]]
+==== `[.contract-item-name]#++removeGateway++#++(address gateway)++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-setThreshold-uint8-]]
+==== `[.contract-item-name]#++setThreshold++#++(uint8 newThreshold)++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-registerRemoteBridge-bytes-]]
+==== `[.contract-item-name]#++registerRemoteBridge++#++(bytes bridge)++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-pause--]]
+==== `[.contract-item-name]#++pause++#++()++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-unpause--]]
+==== `[.contract-item-name]#++unpause++#++()++` [.item-kind]#public#
+
+[.contract-item]
+[[ERC7786OpenBridge-sweep-address-payable-]]
+==== `[.contract-item-name]#++sweep++#++(address payable to)++` [.item-kind]#public#
+
+Recovery method in case value is ever received through {receiveMessage}
+
+[.contract-item]
+[[ERC7786OpenBridge-_addGateway-address-]]
+==== `[.contract-item-name]#++_addGateway++#++(address gateway)++` [.item-kind]#internal#
+
+[.contract-item]
+[[ERC7786OpenBridge-_removeGateway-address-]]
+==== `[.contract-item-name]#++_removeGateway++#++(address gateway)++` [.item-kind]#internal#
+
+Removes a gateway from the authorized set. Receipts previously recorded by the removed gateway remain
+counted toward the threshold of not-yet-executed messages; there is no on-chain mechanism to invalidate them.
+Pausing the bridge before removal blocks concurrent {receiveMessage} deliveries during the rotation but does
+not clear existing {Tracker} state, which remains eligible once the bridge is unpaused.
+
+[.contract-item]
+[[ERC7786OpenBridge-_setThreshold-uint8-]]
+==== `[.contract-item-name]#++_setThreshold++#++(uint8 newThreshold)++` [.item-kind]#internal#
+
+[.contract-item]
+[[ERC7786OpenBridge-_registerRemoteBridge-bytes-]]
+==== `[.contract-item-name]#++_registerRemoteBridge++#++(bytes bridge)++` [.item-kind]#internal#
+
+Registers or rotates the trusted remote bridge for the (chainType, chainReference) encoded in `bridge`.
+If a remote is already registered for that chain, it is overwritten. This is intentional to support remote
+bridge rotation; messages in flight from the previous remote will fail sender authentication after rotation.
+
+[.contract-item]
+[[ERC7786OpenBridge-OutboxDetails-bytes32-struct-ERC7786OpenBridge-Outbox---]]
+==== `[.contract-item-name]#++OutboxDetails++#++(bytes32 indexed sendId, struct ERC7786OpenBridge.Outbox[] outbox)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-Received-bytes32-address-]]
+==== `[.contract-item-name]#++Received++#++(bytes32 indexed receiveId, address gateway)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-ExecutionSuccess-bytes32-]]
+==== `[.contract-item-name]#++ExecutionSuccess++#++(bytes32 indexed receiveId)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-ExecutionFailed-bytes32-]]
+==== `[.contract-item-name]#++ExecutionFailed++#++(bytes32 indexed receiveId)++` [.item-kind]#event#
+
+Emitted when the recipient call fails on a threshold-crossing delivery. The `(sender, payload)` preimage
+needed to retry {receiveMessage} is not included here to keep the failure path gas-lean; it can be reconstructed
+from the gateway-level events (or the transaction trace) that carried the message.
+
+[.contract-item]
+[[ERC7786OpenBridge-GatewayAdded-address-]]
+==== `[.contract-item-name]#++GatewayAdded++#++(address indexed gateway)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-GatewayRemoved-address-]]
+==== `[.contract-item-name]#++GatewayRemoved++#++(address indexed gateway)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-ThresholdUpdated-uint8-]]
+==== `[.contract-item-name]#++ThresholdUpdated++#++(uint8 threshold)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-RemoteRegistered-bytes-]]
+==== `[.contract-item-name]#++RemoteRegistered++#++(bytes remote)++` [.item-kind]#event#
+
+[.contract-item]
+[[ERC7786OpenBridge-UnsupportedNativeTransfer--]]
+==== `[.contract-item-name]#++UnsupportedNativeTransfer++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeInvalidCrosschainSender--]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeInvalidCrosschainSender++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeAlreadyExecuted--]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeAlreadyExecuted++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeRemoteNotRegistered-bytes2-bytes-]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeRemoteNotRegistered++#++(bytes2 chainType, bytes chainReference)++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeGatewayAlreadyRegistered-address-]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeGatewayAlreadyRegistered++#++(address gateway)++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeGatewayNotRegistered-address-]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeGatewayNotRegistered++#++(address gateway)++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeThresholdViolation--]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeThresholdViolation++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[ERC7786OpenBridge-ERC7786OpenBridgeInvalidExecutionReturnValue--]]
+==== `[.contract-item-name]#++ERC7786OpenBridgeInvalidExecutionReturnValue++#++()++` [.item-kind]#error#
+
+== Utilities
+
+:tryDecodeRequestRelay: pass:normal[xref:#ERC7786Attributes-tryDecodeRequestRelay-bytes-[`++tryDecodeRequestRelay++`]]
+
+[.contract]
+[[ERC7786Attributes]]
+=== `++ERC7786Attributes++` link:https://github.com/OpenZeppelin/openzeppelin-community-contracts/blob/master/contracts/crosschain/utils/ERC7786Attributes.sol[{github-icon},role=heading-link]
+
+[.hljs-theme-light.nopadding]
+```solidity
+import "@openzeppelin/community-contracts/crosschain/utils/ERC7786Attributes.sol";
+```
+
+Library of helper to parse/process ERC-7786 attributes
+
+[.contract-index]
+.Functions
+--
+* `++tryDecodeRequestRelay(attribute)++`
+
+--
+
+[.contract-item]
+[[ERC7786Attributes-tryDecodeRequestRelay-bytes-]]
+==== `[.contract-item-name]#++tryDecodeRequestRelay++#++(bytes attribute) → bool success, uint256 value, uint256 gasLimit, address refundRecipient++` [.item-kind]#internal#
+
+Parse the `requestRelay(uint256,uint256,address)` (0x4cbb573a) attribute into its components.
+
+== Adapters
+
+=== Axelar
+
+:RegisteredRemoteGateway: pass:normal[xref:#AxelarGatewayAdapter-RegisteredRemoteGateway-bytes-[`++RegisteredRemoteGateway++`]]
+:RegisteredChainEquivalence: pass:normal[xref:#AxelarGatewayAdapter-RegisteredChainEquivalence-bytes-string-[`++RegisteredChainEquivalence++`]]
+:UnsupportedNativeTransfer: pass:normal[xref:#AxelarGatewayAdapter-UnsupportedNativeTransfer--[`++UnsupportedNativeTransfer++`]]
+:InvalidOriginGateway: pass:normal[xref:#AxelarGatewayAdapter-InvalidOriginGateway-string-string-[`++InvalidOriginGateway++`]]
+:RecipientExecutionFailed: pass:normal[xref:#AxelarGatewayAdapter-RecipientExecutionFailed--[`++RecipientExecutionFailed++`]]
+:UnsupportedChainType: pass:normal[xref:#AxelarGatewayAdapter-UnsupportedChainType-bytes2-[`++UnsupportedChainType++`]]
+:UnsupportedERC7930Chain: pass:normal[xref:#AxelarGatewayAdapter-UnsupportedERC7930Chain-bytes-[`++UnsupportedERC7930Chain++`]]
+:UnsupportedAxelarChain: pass:normal[xref:#AxelarGatewayAdapter-UnsupportedAxelarChain-string-[`++UnsupportedAxelarChain++`]]
+:InvalidChainIdentifier: pass:normal[xref:#AxelarGatewayAdapter-InvalidChainIdentifier-bytes-[`++InvalidChainIdentifier++`]]
+:ChainEquivalenceAlreadyRegistered: pass:normal[xref:#AxelarGatewayAdapter-ChainEquivalenceAlreadyRegistered-bytes-string-[`++ChainEquivalenceAlreadyRegistered++`]]
+:RemoteGatewayAlreadyRegistered: pass:normal[xref:#AxelarGatewayAdapter-RemoteGatewayAlreadyRegistered-bytes2-bytes-[`++RemoteGatewayAlreadyRegistered++`]]
+:constructor: pass:normal[xref:#AxelarGatewayAdapter-constructor-contract-IAxelarGateway-address-[`++constructor++`]]
+:getAxelarChain: pass:normal[xref:#AxelarGatewayAdapter-getAxelarChain-bytes-[`++getAxelarChain++`]]
+:getErc7930Chain: pass:normal[xref:#AxelarGatewayAdapter-getErc7930Chain-string-[`++getErc7930Chain++`]]
+:getRemoteGateway: pass:normal[xref:#AxelarGatewayAdapter-getRemoteGateway-bytes-[`++getRemoteGateway++`]]
+:getRemoteGateway: pass:normal[xref:#AxelarGatewayAdapter-getRemoteGateway-bytes2-bytes-[`++getRemoteGateway++`]]
+:registerChainEquivalence: pass:normal[xref:#AxelarGatewayAdapter-registerChainEquivalence-bytes-string-[`++registerChainEquivalence++`]]
+:registerRemoteGateway: pass:normal[xref:#AxelarGatewayAdapter-registerRemoteGateway-bytes-[`++registerRemoteGateway++`]]
+:supportsAttribute: pass:normal[xref:#AxelarGatewayAdapter-supportsAttribute-bytes4-[`++supportsAttribute++`]]
+:sendMessage: pass:normal[xref:#AxelarGatewayAdapter-sendMessage-bytes-bytes-bytes---[`++sendMessage++`]]
+:_execute: pass:normal[xref:#AxelarGatewayAdapter-_execute-bytes32-string-string-bytes-[`++_execute++`]]
+:_stringifyAddress: pass:normal[xref:#AxelarGatewayAdapter-_stringifyAddress-bytes2-bytes-[`++_stringifyAddress++`]]
+
+[.contract]
+[[AxelarGatewayAdapter]]
+=== `++AxelarGatewayAdapter++` link:https://github.com/OpenZeppelin/openzeppelin-community-contracts/blob/master/contracts/crosschain/axelar/AxelarGatewayAdapter.sol[{github-icon},role=heading-link]
+
+[.hljs-theme-light.nopadding]
+```solidity
+import "@openzeppelin/community-contracts/crosschain/axelar/AxelarGatewayAdapter.sol";
+```
+
+Implementation of an ERC-7786 gateway destination adapter for the Axelar Network in dual mode.
+
+The contract implements AxelarExecutable's {_execute} function to execute the message, converting Axelar's native
+workflow into the standard ERC-7786.
+
+NOTE: While both ERC-7786 and Axelar do support non-evm chains, this adaptor does not. This limitation comes from
+the translation of the ERC-7930 interoperable address (binary objects -- bytes) to strings. This is necessary
+because Axelar uses string to represent addresses. For EVM network, this adapter uses a checksum hex string
+representation. Other networks would require a different encoding. Ideally we would have a single encoding for all
+networks (could be base58, base64, ...) but Axelar doesn't support that.
+
+[.contract-index]
+.Functions
+--
+* `++constructor(gateway, initialOwner)++`
+* `++getAxelarChain(input)++`
+* `++getErc7930Chain(input)++`
+* `++getRemoteGateway(chain)++`
+* `++getRemoteGateway(chainType, chainReference)++`
+* `++registerChainEquivalence(chain, axelar)++`
+* `++registerRemoteGateway(remote)++`
+* `++supportsAttribute()++`
+* `++sendMessage(recipient, payload, attributes)++`
+* `++_execute(commandId, axelarSourceChain, axelarSourceAddress, adapterPayload)++`
+* `++_stringifyAddress(chainType, addr)++`
+
+[.contract-subindex-inherited]
+.AxelarExecutable
+* `++execute(commandId, sourceChain, sourceAddress, payload)++`
+* `++gateway()++`
+
+[.contract-subindex-inherited]
+.IAxelarExecutable
+
+[.contract-subindex-inherited]
+.Ownable
+* `++owner()++`
+* `++_checkOwner()++`
+* `++renounceOwnership()++`
+* `++transferOwnership(newOwner)++`
+* `++_transferOwnership(newOwner)++`
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+
+--
+
+[.contract-index]
+.Events
+--
+* `++RegisteredRemoteGateway(remote)++`
+* `++RegisteredChainEquivalence(erc7930binary, axelar)++`
+
+[.contract-subindex-inherited]
+.AxelarExecutable
+
+[.contract-subindex-inherited]
+.IAxelarExecutable
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnershipTransferred(previousOwner, newOwner)++`
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++MessageSent(sendId, sender, recipient, payload, value, attributes)++`
+
+--
+
+[.contract-index]
+.Errors
+--
+* `++UnsupportedNativeTransfer()++`
+* `++InvalidOriginGateway(axelarSourceChain, axelarSourceAddress)++`
+* `++RecipientExecutionFailed()++`
+* `++UnsupportedChainType(chainType)++`
+* `++UnsupportedERC7930Chain(erc7930binary)++`
+* `++UnsupportedAxelarChain(axelar)++`
+* `++InvalidChainIdentifier(erc7930binary)++`
+* `++ChainEquivalenceAlreadyRegistered(erc7930binary, axelar)++`
+* `++RemoteGatewayAlreadyRegistered(chainType, chainReference)++`
+
+[.contract-subindex-inherited]
+.AxelarExecutable
+
+[.contract-subindex-inherited]
+.IAxelarExecutable
+* `++InvalidAddress()++`
+* `++NotApprovedByGateway()++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnableUnauthorizedAccount(account)++`
+* `++OwnableInvalidOwner(owner)++`
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++UnsupportedAttribute(selector)++`
+
+--
+
+[.contract-item]
+[[AxelarGatewayAdapter-constructor-contract-IAxelarGateway-address-]]
+==== `[.contract-item-name]#++constructor++#++(contract IAxelarGateway gateway, address initialOwner)++` [.item-kind]#public#
+
+Initializes the contract with the Axelar gateway and the initial owner.
+
+[.contract-item]
+[[AxelarGatewayAdapter-getAxelarChain-bytes-]]
+==== `[.contract-item-name]#++getAxelarChain++#++(bytes input) → string output++` [.item-kind]#public#
+
+Returns the Axelar chain identifier for a given binary interoperable chain id.
+
+[.contract-item]
+[[AxelarGatewayAdapter-getErc7930Chain-string-]]
+==== `[.contract-item-name]#++getErc7930Chain++#++(string input) → bytes output++` [.item-kind]#public#
+
+Returns the binary interoperable chain id for a given Axelar chain identifier.
+
+[.contract-item]
+[[AxelarGatewayAdapter-getRemoteGateway-bytes-]]
+==== `[.contract-item-name]#++getRemoteGateway++#++(bytes chain) → bytes++` [.item-kind]#public#
+
+Returns the address of the remote gateway for a given binary interoperable chain id.
+
+[.contract-item]
+[[AxelarGatewayAdapter-getRemoteGateway-bytes2-bytes-]]
+==== `[.contract-item-name]#++getRemoteGateway++#++(bytes2 chainType, bytes chainReference) → bytes++` [.item-kind]#public#
+
+Returns the address of the remote gateway for a given chainType and chainReference.
+
+[.contract-item]
+[[AxelarGatewayAdapter-registerChainEquivalence-bytes-string-]]
+==== `[.contract-item-name]#++registerChainEquivalence++#++(bytes chain, string axelar)++` [.item-kind]#public#
+
+Registers a chain equivalence between a binary interoperable chain id and an Axelar chain identifier.
+
+[.contract-item]
+[[AxelarGatewayAdapter-registerRemoteGateway-bytes-]]
+==== `[.contract-item-name]#++registerRemoteGateway++#++(bytes remote)++` [.item-kind]#public#
+
+Registers the address of a remote gateway.
+
+[.contract-item]
+[[AxelarGatewayAdapter-supportsAttribute-bytes4-]]
+==== `[.contract-item-name]#++supportsAttribute++#++(bytes4) → bool++` [.item-kind]#public#
+
+Getter to check whether an attribute is supported or not.
+
+[.contract-item]
+[[AxelarGatewayAdapter-sendMessage-bytes-bytes-bytes---]]
+==== `[.contract-item-name]#++sendMessage++#++(bytes recipient, bytes payload, bytes[] attributes) → bytes32++` [.item-kind]#external#
+
+See {IERC7786GatewaySource-sendMessage}. The adapter forwards `payload` and `recipient` to the destination
+chain. Structurally malformed ERC-7930 `recipient` values that fail to parse revert on the source side before
+forwarding. It does not enforce a maximum size for `payload` nor validate the address component of a validly
+encoded `recipient`; the caller is responsible for supplying values that the destination chain can decode and
+that resolve to a live recipient. Oversized payloads or recipients with invalid or non-contract targets will
+surface as undeliverable messages on the destination side.
+
+[.contract-item]
+[[AxelarGatewayAdapter-_execute-bytes32-string-string-bytes-]]
+==== `[.contract-item-name]#++_execute++#++(bytes32 commandId, string axelarSourceChain, string axelarSourceAddress, bytes adapterPayload)++` [.item-kind]#internal#
+
+Execution of a cross-chain message.
+
+In this function:
+
+- `axelarSourceChain` is in the Axelar format. It should not be expected to be a proper ERC-7930 format
+- `axelarSourceAddress` is the sender of the Axelar message. That should be the remote gateway on the chain
+  which the message originates from. It is NOT the sender of the ERC-7786 crosschain message.
+
+Proper ERC-7930 encoding of the crosschain message sender can be found in the message
+
+[.contract-item]
+[[AxelarGatewayAdapter-_stringifyAddress-bytes2-bytes-]]
+==== `[.contract-item-name]#++_stringifyAddress++#++(bytes2 chainType, bytes addr) → string++` [.item-kind]#internal#
+
+ERC-7930 to Axelar address translation. Currently only supports EVM chains.
+
+[.contract-item]
+[[AxelarGatewayAdapter-RegisteredRemoteGateway-bytes-]]
+==== `[.contract-item-name]#++RegisteredRemoteGateway++#++(bytes remote)++` [.item-kind]#event#
+
+A remote gateway has been registered for a chain.
+
+[.contract-item]
+[[AxelarGatewayAdapter-RegisteredChainEquivalence-bytes-string-]]
+==== `[.contract-item-name]#++RegisteredChainEquivalence++#++(bytes erc7930binary, string axelar)++` [.item-kind]#event#
+
+A chain equivalence has been registered.
+
+[.contract-item]
+[[AxelarGatewayAdapter-UnsupportedNativeTransfer--]]
+==== `[.contract-item-name]#++UnsupportedNativeTransfer++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-InvalidOriginGateway-string-string-]]
+==== `[.contract-item-name]#++InvalidOriginGateway++#++(string axelarSourceChain, string axelarSourceAddress)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-RecipientExecutionFailed--]]
+==== `[.contract-item-name]#++RecipientExecutionFailed++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-UnsupportedChainType-bytes2-]]
+==== `[.contract-item-name]#++UnsupportedChainType++#++(bytes2 chainType)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-UnsupportedERC7930Chain-bytes-]]
+==== `[.contract-item-name]#++UnsupportedERC7930Chain++#++(bytes erc7930binary)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-UnsupportedAxelarChain-string-]]
+==== `[.contract-item-name]#++UnsupportedAxelarChain++#++(string axelar)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-InvalidChainIdentifier-bytes-]]
+==== `[.contract-item-name]#++InvalidChainIdentifier++#++(bytes erc7930binary)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-ChainEquivalenceAlreadyRegistered-bytes-string-]]
+==== `[.contract-item-name]#++ChainEquivalenceAlreadyRegistered++#++(bytes erc7930binary, string axelar)++` [.item-kind]#error#
+
+[.contract-item]
+[[AxelarGatewayAdapter-RemoteGatewayAlreadyRegistered-bytes2-bytes-]]
+==== `[.contract-item-name]#++RemoteGatewayAlreadyRegistered++#++(bytes2 chainType, bytes chainReference)++` [.item-kind]#error#
+
+=== Wormhole
+
+:_wormholeRelayer: pass:normal[xref:#WormholeGatewayAdapter-_wormholeRelayer-contract-IWormholeRelayer[`++_wormholeRelayer++`]]
+:_wormholeChainId: pass:normal[xref:#WormholeGatewayAdapter-_wormholeChainId-uint16[`++_wormholeChainId++`]]
+:PendingMessage: pass:normal[xref:#WormholeGatewayAdapter-PendingMessage[`++PendingMessage++`]]
+:MessageRelayed: pass:normal[xref:#WormholeGatewayAdapter-MessageRelayed-bytes32-[`++MessageRelayed++`]]
+:RegisteredRemoteGateway: pass:normal[xref:#WormholeGatewayAdapter-RegisteredRemoteGateway-uint256-address-[`++RegisteredRemoteGateway++`]]
+:RegisteredChainEquivalence: pass:normal[xref:#WormholeGatewayAdapter-RegisteredChainEquivalence-uint256-uint16-[`++RegisteredChainEquivalence++`]]
+:InvalidAttributeEncoding: pass:normal[xref:#WormholeGatewayAdapter-InvalidAttributeEncoding-bytes-[`++InvalidAttributeEncoding++`]]
+:DuplicatedAttribute: pass:normal[xref:#WormholeGatewayAdapter-DuplicatedAttribute--[`++DuplicatedAttribute++`]]
+:UnauthorizedCaller: pass:normal[xref:#WormholeGatewayAdapter-UnauthorizedCaller-address-[`++UnauthorizedCaller++`]]
+:InvalidOriginGateway: pass:normal[xref:#WormholeGatewayAdapter-InvalidOriginGateway-uint16-bytes32-[`++InvalidOriginGateway++`]]
+:RecipientExecutionFailed: pass:normal[xref:#WormholeGatewayAdapter-RecipientExecutionFailed--[`++RecipientExecutionFailed++`]]
+:UnsupportedChainId: pass:normal[xref:#WormholeGatewayAdapter-UnsupportedChainId-uint256-[`++UnsupportedChainId++`]]
+:UnsupportedWormholeChain: pass:normal[xref:#WormholeGatewayAdapter-UnsupportedWormholeChain-uint16-[`++UnsupportedWormholeChain++`]]
+:ChainEquivalenceAlreadyRegistered: pass:normal[xref:#WormholeGatewayAdapter-ChainEquivalenceAlreadyRegistered-uint256-uint16-[`++ChainEquivalenceAlreadyRegistered++`]]
+:RemoteGatewayAlreadyRegistered: pass:normal[xref:#WormholeGatewayAdapter-RemoteGatewayAlreadyRegistered-uint256-[`++RemoteGatewayAlreadyRegistered++`]]
+:InvalidSendId: pass:normal[xref:#WormholeGatewayAdapter-InvalidSendId-bytes32-[`++InvalidSendId++`]]
+:AdditionalMessagesNotSupported: pass:normal[xref:#WormholeGatewayAdapter-AdditionalMessagesNotSupported--[`++AdditionalMessagesNotSupported++`]]
+:MessageAlreadyExecuted: pass:normal[xref:#WormholeGatewayAdapter-MessageAlreadyExecuted-uint256-bytes32-[`++MessageAlreadyExecuted++`]]
+:onlyWormholeRelayer: pass:normal[xref:#WormholeGatewayAdapter-onlyWormholeRelayer--[`++onlyWormholeRelayer++`]]
+:constructor: pass:normal[xref:#WormholeGatewayAdapter-constructor-contract-IWormholeRelayer-uint16-address-[`++constructor++`]]
+:relayer: pass:normal[xref:#WormholeGatewayAdapter-relayer--[`++relayer++`]]
+:supportedChain: pass:normal[xref:#WormholeGatewayAdapter-supportedChain-bytes-[`++supportedChain++`]]
+:supportedChain: pass:normal[xref:#WormholeGatewayAdapter-supportedChain-uint256-[`++supportedChain++`]]
+:getWormholeChain: pass:normal[xref:#WormholeGatewayAdapter-getWormholeChain-bytes-[`++getWormholeChain++`]]
+:getWormholeChain: pass:normal[xref:#WormholeGatewayAdapter-getWormholeChain-uint256-[`++getWormholeChain++`]]
+:getChainId: pass:normal[xref:#WormholeGatewayAdapter-getChainId-uint16-[`++getChainId++`]]
+:getRemoteGateway: pass:normal[xref:#WormholeGatewayAdapter-getRemoteGateway-bytes-[`++getRemoteGateway++`]]
+:getRemoteGateway: pass:normal[xref:#WormholeGatewayAdapter-getRemoteGateway-uint256-[`++getRemoteGateway++`]]
+:registerChainEquivalence: pass:normal[xref:#WormholeGatewayAdapter-registerChainEquivalence-bytes-uint16-[`++registerChainEquivalence++`]]
+:registerChainEquivalence: pass:normal[xref:#WormholeGatewayAdapter-registerChainEquivalence-uint256-uint16-[`++registerChainEquivalence++`]]
+:registerRemoteGateway: pass:normal[xref:#WormholeGatewayAdapter-registerRemoteGateway-bytes-[`++registerRemoteGateway++`]]
+:registerRemoteGateway: pass:normal[xref:#WormholeGatewayAdapter-registerRemoteGateway-uint256-address-[`++registerRemoteGateway++`]]
+:supportsAttribute: pass:normal[xref:#WormholeGatewayAdapter-supportsAttribute-bytes4-[`++supportsAttribute++`]]
+:sendMessage: pass:normal[xref:#WormholeGatewayAdapter-sendMessage-bytes-bytes-bytes---[`++sendMessage++`]]
+:quoteRelay: pass:normal[xref:#WormholeGatewayAdapter-quoteRelay-bytes-bytes-bytes---uint256-uint256-address-[`++quoteRelay++`]]
+:requestRelay: pass:normal[xref:#WormholeGatewayAdapter-requestRelay-bytes32-uint256-address-[`++requestRelay++`]]
+:receiveWormholeMessages: pass:normal[xref:#WormholeGatewayAdapter-receiveWormholeMessages-bytes-bytes---bytes32-uint16-bytes32-[`++receiveWormholeMessages++`]]
+
+[.contract]
+[[WormholeGatewayAdapter]]
+=== `++WormholeGatewayAdapter++` link:https://github.com/OpenZeppelin/openzeppelin-community-contracts/blob/master/contracts/crosschain/wormhole/WormholeGatewayAdapter.sol[{github-icon},role=heading-link]
+
+[.hljs-theme-light.nopadding]
+```solidity
+import "@openzeppelin/community-contracts/crosschain/wormhole/WormholeGatewayAdapter.sol";
+```
+
+An ERC-7786 compliant adapter to send and receive messages via Wormhole.
+
+Note: only EVM chains are currently supported
+
+[.contract-index]
+.Modifiers
+--
+* `++onlyWormholeRelayer()++`
+--
+
+[.contract-index]
+.Functions
+--
+* `++constructor(wormholeRelayer, wormholeChainId, initialOwner)++`
+* `++relayer()++`
+* `++supportedChain(chain)++`
+* `++supportedChain(chainId)++`
+* `++getWormholeChain(chain)++`
+* `++getWormholeChain(chainId)++`
+* `++getChainId(wormholeId)++`
+* `++getRemoteGateway(chain)++`
+* `++getRemoteGateway(chainId)++`
+* `++registerChainEquivalence(chain, wormholeId)++`
+* `++registerChainEquivalence(chainId, wormholeId)++`
+* `++registerRemoteGateway(remote)++`
+* `++registerRemoteGateway(chainId, addr)++`
+* `++supportsAttribute(selector)++`
+* `++sendMessage(recipient, payload, attributes)++`
+* `++quoteRelay(recipient, , , value, gasLimit, )++`
+* `++requestRelay(sendId, gasLimit, refundRecipient)++`
+* `++receiveWormholeMessages(adapterPayload, additionalMessages, wormholeSourceAddress, wormholeSourceChain, deliveryHash)++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++owner()++`
+* `++_checkOwner()++`
+* `++renounceOwnership()++`
+* `++transferOwnership(newOwner)++`
+* `++_transferOwnership(newOwner)++`
+
+[.contract-subindex-inherited]
+.IWormholeReceiver
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+
+--
+
+[.contract-index]
+.Events
+--
+* `++MessageRelayed(sendId)++`
+* `++RegisteredRemoteGateway(chainId, remote)++`
+* `++RegisteredChainEquivalence(chainId, wormholeId)++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnershipTransferred(previousOwner, newOwner)++`
+
+[.contract-subindex-inherited]
+.IWormholeReceiver
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++MessageSent(sendId, sender, recipient, payload, value, attributes)++`
+
+--
+
+[.contract-index]
+.Errors
+--
+* `++InvalidAttributeEncoding(attribute)++`
+* `++DuplicatedAttribute()++`
+* `++UnauthorizedCaller()++`
+* `++InvalidOriginGateway(wormholeSourceChain, wormholeSourceAddress)++`
+* `++RecipientExecutionFailed()++`
+* `++UnsupportedChainId(chainId)++`
+* `++UnsupportedWormholeChain(wormholeId)++`
+* `++ChainEquivalenceAlreadyRegistered(chainId, wormhole)++`
+* `++RemoteGatewayAlreadyRegistered(chainId)++`
+* `++InvalidSendId(sendId)++`
+* `++AdditionalMessagesNotSupported()++`
+* `++MessageAlreadyExecuted(chainId, outboxId)++`
+
+[.contract-subindex-inherited]
+.Ownable
+* `++OwnableUnauthorizedAccount(account)++`
+* `++OwnableInvalidOwner(owner)++`
+
+[.contract-subindex-inherited]
+.IWormholeReceiver
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+* `++UnsupportedAttribute(selector)++`
+
+--
+
+[.contract-index]
+.Internal Variables
+--
+* `++contract IWormholeRelayer  _wormholeRelayer++`
+* `++uint16  _wormholeChainId++`
+
+[.contract-subindex-inherited]
+.Ownable
+
+[.contract-subindex-inherited]
+.IWormholeReceiver
+
+[.contract-subindex-inherited]
+.IERC7786GatewaySource
+
+--
+
+[.contract-item]
+[[WormholeGatewayAdapter-onlyWormholeRelayer--]]
+==== `[.contract-item-name]#++onlyWormholeRelayer++#++()++` [.item-kind]#modifier#
+
+[.contract-item]
+[[WormholeGatewayAdapter-constructor-contract-IWormholeRelayer-uint16-address-]]
+==== `[.contract-item-name]#++constructor++#++(contract IWormholeRelayer wormholeRelayer, uint16 wormholeChainId, address initialOwner)++` [.item-kind]#public#
+
+Initializes the contract with the Wormhole gateway and the initial owner.
+
+[.contract-item]
+[[WormholeGatewayAdapter-relayer--]]
+==== `[.contract-item-name]#++relayer++#++() → address++` [.item-kind]#public#
+
+Returns the local Wormhole relayer
+
+[.contract-item]
+[[WormholeGatewayAdapter-supportedChain-bytes-]]
+==== `[.contract-item-name]#++supportedChain++#++(bytes chain) → bool++` [.item-kind]#public#
+
+Returns whether a binary interoperable chain id is supported.
+
+[.contract-item]
+[[WormholeGatewayAdapter-supportedChain-uint256-]]
+==== `[.contract-item-name]#++supportedChain++#++(uint256 chainId) → bool++` [.item-kind]#public#
+
+Returns whether an EVM chain id is supported.
+
+[.contract-item]
+[[WormholeGatewayAdapter-getWormholeChain-bytes-]]
+==== `[.contract-item-name]#++getWormholeChain++#++(bytes chain) → uint16++` [.item-kind]#public#
+
+Returns the Wormhole chain id that correspond to a given binary interoperable chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-getWormholeChain-uint256-]]
+==== `[.contract-item-name]#++getWormholeChain++#++(uint256 chainId) → uint16++` [.item-kind]#public#
+
+Returns the Wormhole chain id that correspond to a given EVM chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-getChainId-uint16-]]
+==== `[.contract-item-name]#++getChainId++#++(uint16 wormholeId) → uint256++` [.item-kind]#public#
+
+Returns the EVM chain id for a given Wormhole chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-getRemoteGateway-bytes-]]
+==== `[.contract-item-name]#++getRemoteGateway++#++(bytes chain) → address++` [.item-kind]#public#
+
+Returns the address of the remote gateway for a given binary interoperable chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-getRemoteGateway-uint256-]]
+==== `[.contract-item-name]#++getRemoteGateway++#++(uint256 chainId) → address++` [.item-kind]#public#
+
+Returns the address of the remote gateway for a given EVM chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-registerChainEquivalence-bytes-uint16-]]
+==== `[.contract-item-name]#++registerChainEquivalence++#++(bytes chain, uint16 wormholeId)++` [.item-kind]#public#
+
+Registers a chain equivalence between a binary interoperable chain id and a Wormhole chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-registerChainEquivalence-uint256-uint16-]]
+==== `[.contract-item-name]#++registerChainEquivalence++#++(uint256 chainId, uint16 wormholeId)++` [.item-kind]#public#
+
+Registers a chain equivalence between an EVM chain id and a Wormhole chain id.
+
+[.contract-item]
+[[WormholeGatewayAdapter-registerRemoteGateway-bytes-]]
+==== `[.contract-item-name]#++registerRemoteGateway++#++(bytes remote)++` [.item-kind]#public#
+
+Registers the address of a remote gateway (binary interoperable address version).
+
+[.contract-item]
+[[WormholeGatewayAdapter-registerRemoteGateway-uint256-address-]]
+==== `[.contract-item-name]#++registerRemoteGateway++#++(uint256 chainId, address addr)++` [.item-kind]#public#
+
+Registers the address of a remote gateway (EVM version).
+
+[.contract-item]
+[[WormholeGatewayAdapter-supportsAttribute-bytes4-]]
+==== `[.contract-item-name]#++supportsAttribute++#++(bytes4 selector) → bool++` [.item-kind]#public#
+
+Getter to check whether an attribute is supported or not.
+
+[.contract-item]
+[[WormholeGatewayAdapter-sendMessage-bytes-bytes-bytes---]]
+==== `[.contract-item-name]#++sendMessage++#++(bytes recipient, bytes payload, bytes[] attributes) → bytes32 sendId++` [.item-kind]#external#
+
+Endpoint for creating a new message. If the message requires further (gateway specific) processing before
+it can be sent to the destination chain, then a non-zero `sendId` must be returned. Otherwise, the
+message MUST be sent and this function must return 0.
+
+* MUST emit a {MessageSent} event.
+
+If any of the `attributes` is not supported, this function SHOULD revert with an {UnsupportedAttribute} error.
+Other errors SHOULD revert with errors not specified in ERC-7786.
+
+[.contract-item]
+[[WormholeGatewayAdapter-quoteRelay-bytes-bytes-bytes---uint256-uint256-address-]]
+==== `[.contract-item-name]#++quoteRelay++#++(bytes recipient, bytes, bytes[], uint256 value, uint256 gasLimit, address) → uint256++` [.item-kind]#external#
+
+Returns a quote for the value that must be passed to {requestRelay}
+
+[.contract-item]
+[[WormholeGatewayAdapter-requestRelay-bytes32-uint256-address-]]
+==== `[.contract-item-name]#++requestRelay++#++(bytes32 sendId, uint256 gasLimit, address refundRecipient)++` [.item-kind]#external#
+
+Relay a message that was initiated by {sendMessage}.
+
+[.contract-item]
+[[WormholeGatewayAdapter-receiveWormholeMessages-bytes-bytes---bytes32-uint16-bytes32-]]
+==== `[.contract-item-name]#++receiveWormholeMessages++#++(bytes adapterPayload, bytes[] additionalMessages, bytes32 wormholeSourceAddress, uint16 wormholeSourceChain, bytes32 deliveryHash)++` [.item-kind]#public#
+
+[.contract-item]
+[[WormholeGatewayAdapter-MessageRelayed-bytes32-]]
+==== `[.contract-item-name]#++MessageRelayed++#++(bytes32 sendId)++` [.item-kind]#event#
+
+A message was relayed to Wormhole (part of the post processing of the outbox ids created by {sendMessage})
+
+[.contract-item]
+[[WormholeGatewayAdapter-RegisteredRemoteGateway-uint256-address-]]
+==== `[.contract-item-name]#++RegisteredRemoteGateway++#++(uint256 chainId, address remote)++` [.item-kind]#event#
+
+A remote gateway has been registered for a chain.
+
+[.contract-item]
+[[WormholeGatewayAdapter-RegisteredChainEquivalence-uint256-uint16-]]
+==== `[.contract-item-name]#++RegisteredChainEquivalence++#++(uint256 chainId, uint16 wormholeId)++` [.item-kind]#event#
+
+A chain equivalence has been registered.
+
+[.contract-item]
+[[WormholeGatewayAdapter-InvalidAttributeEncoding-bytes-]]
+==== `[.contract-item-name]#++InvalidAttributeEncoding++#++(bytes attribute)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-DuplicatedAttribute--]]
+==== `[.contract-item-name]#++DuplicatedAttribute++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-UnauthorizedCaller-address-]]
+==== `[.contract-item-name]#++UnauthorizedCaller++#++(address)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-InvalidOriginGateway-uint16-bytes32-]]
+==== `[.contract-item-name]#++InvalidOriginGateway++#++(uint16 wormholeSourceChain, bytes32 wormholeSourceAddress)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-RecipientExecutionFailed--]]
+==== `[.contract-item-name]#++RecipientExecutionFailed++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-UnsupportedChainId-uint256-]]
+==== `[.contract-item-name]#++UnsupportedChainId++#++(uint256 chainId)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-UnsupportedWormholeChain-uint16-]]
+==== `[.contract-item-name]#++UnsupportedWormholeChain++#++(uint16 wormholeId)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-ChainEquivalenceAlreadyRegistered-uint256-uint16-]]
+==== `[.contract-item-name]#++ChainEquivalenceAlreadyRegistered++#++(uint256 chainId, uint16 wormhole)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-RemoteGatewayAlreadyRegistered-uint256-]]
+==== `[.contract-item-name]#++RemoteGatewayAlreadyRegistered++#++(uint256 chainId)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-InvalidSendId-bytes32-]]
+==== `[.contract-item-name]#++InvalidSendId++#++(bytes32 sendId)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-AdditionalMessagesNotSupported--]]
+==== `[.contract-item-name]#++AdditionalMessagesNotSupported++#++()++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-MessageAlreadyExecuted-uint256-bytes32-]]
+==== `[.contract-item-name]#++MessageAlreadyExecuted++#++(uint256 chainId, bytes32 outboxId)++` [.item-kind]#error#
+
+[.contract-item]
+[[WormholeGatewayAdapter-_wormholeRelayer-contract-IWormholeRelayer]]
+==== `contract IWormholeRelayer [.contract-item-name]#++_wormholeRelayer++#` [.item-kind]#internal#
+
+[.contract-item]
+[[WormholeGatewayAdapter-_wormholeChainId-uint16]]
+==== `uint16 [.contract-item-name]#++_wormholeChainId++#` [.item-kind]#internal#
+
