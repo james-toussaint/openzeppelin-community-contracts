@@ -48,8 +48,11 @@ npx @openzeppelin/upgrade-safe-transpiler -D \
   -N 'contracts/mocks/**/*' \
   -q '.'
 
+# The `(?:\.\./)*` absorbs relative-path forms too: the transpiler-generated mocks/WithInit.sol imports
+# the regenerated files as "../../@openzeppelin/contracts/...Upgradeable.sol", which must also be redirected
+# to the package path (not just the bare "@openzeppelin/contracts/..." form used by our own contracts).
 find contracts -name '*.sol' -exec perl -pi -e \
-  's{"\@openzeppelin/contracts/([^"]*Upgradeable\.sol)"}{"\@openzeppelin/contracts-upgradeable/$1"}g' {} +
+  's{"(?:\.\./)*\@openzeppelin/contracts/([^"]*Upgradeable\.sol)"}{"\@openzeppelin/contracts-upgradeable/$1"}g' {} +
 
 # The transpiler emits the regenerated dependency contracts at the repo root (./@openzeppelin/contracts,
 # and empty ./@axelar-network, ./wormhole-solidity-sdk for the stateless deps). We reuse the published
