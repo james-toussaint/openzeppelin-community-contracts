@@ -17,6 +17,8 @@ bash scripts/upgradeable/transpile.sh
 commit="$(git rev-parse --short HEAD)"
 start_branch="$(git rev-parse --abbrev-ref HEAD)"
 
+sed -i'' -e 's/viaIR: false/viaIR: true/g' hardhat.config.js && git add hardhat.config.js
+
 git add contracts
 
 # detach from the current branch to avoid making changes to it
