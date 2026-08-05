@@ -51,5 +51,11 @@ npx @openzeppelin/upgrade-safe-transpiler -D \
 find contracts -name '*.sol' -exec perl -pi -e \
   's{"\@openzeppelin/contracts/([^"]*Upgradeable\.sol)"}{"\@openzeppelin/contracts-upgradeable/$1"}g' {} +
 
+# The transpiler emits the regenerated dependency contracts at the repo root (./@openzeppelin/contracts,
+# and empty ./@axelar-network, ./wormhole-solidity-sdk for the stateless deps). We reuse the published
+# @openzeppelin/contracts-upgradeable via the redirect above and never ship these, so drop them — otherwise
+# they linger outside contracts/ and can shadow dependency resolution on local compiles.
+rm -rf ./@openzeppelin ./@axelar-network ./wormhole-solidity-sdk
+
 # delete compilation artifacts of vanilla code
 npm run clean
