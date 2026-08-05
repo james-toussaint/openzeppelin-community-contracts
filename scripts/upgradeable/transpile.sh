@@ -34,7 +34,10 @@ fi
 # -x: exclude contracts from transpilation entirely
 # -N: exclude from namespaces transformation
 # -n: use namespaces
-# -q: partial transpilation using @openzeppelin/contracts as peer project
+# -q: partial transpilation (peer mode) so stateless dependencies (interfaces/libraries) are left
+#     untranspiled. Value is '.' so the peer path-join is a no-op (path.join('.', x) === x) and their
+#     imports keep their original scoped paths (e.g. @openzeppelin/contracts/*, @axelar-network/*).
+#     Using a package prefix like '@openzeppelin/' here would double-prefix them (@openzeppelin/@axelar-...).
 npx @openzeppelin/upgrade-safe-transpiler -D \
   -b "$build_info" \
   -i '@openzeppelin/contracts/proxy/utils/Initializable.sol' \
@@ -43,7 +46,7 @@ npx @openzeppelin/upgrade-safe-transpiler -D \
   -N '@openzeppelin/contracts/**/*' \
   -n \
   -N 'contracts/mocks/**/*' \
-  -q '@openzeppelin/'
+  -q '.'
 
 find contracts -name '*.sol' -exec perl -pi -e \
   's{"\@openzeppelin/contracts/([^"]*Upgradeable\.sol)"}{"\@openzeppelin/contracts-upgradeable/$1"}g' {} +
