@@ -73,5 +73,7 @@ find contracts -name '*.sol' -exec perl -pi -e '
 # they linger outside contracts/ and can shadow dependency resolution on local compiles.
 rm -rf ./@openzeppelin ./@axelar-network ./wormhole-solidity-sdk
 
+sed -i'' -e 's/viaIR: false/viaIR: true/g' hardhat.config.js
+
 # delete compilation artifacts of vanilla code
 npm run clean
