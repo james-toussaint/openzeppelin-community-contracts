@@ -33,8 +33,8 @@ contract WormholeGatewayAdapter is IERC7786GatewaySource, IWormholeReceiver, Own
         bytes payload;
     }
 
-    IWormholeRelayer internal immutable _wormholeRelayer;
-    uint16 internal immutable _wormholeChainId;
+    IWormholeRelayer immutable _wormholeRelayer;
+    uint16 immutable _wormholeChainId;
     uint24 private constant EVM_ID_FLAG = 1 << 16;
 
     // Remote gateway.
