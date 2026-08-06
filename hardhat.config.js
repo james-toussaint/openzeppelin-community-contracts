@@ -48,7 +48,7 @@ module.exports = {
         runs: 200,
       },
       evmVersion: argv.hardfork,
-      viaIR: argv.ir,
+      viaIR: true,
     },
   },
   networks: {
