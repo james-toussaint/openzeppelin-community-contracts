@@ -7,14 +7,6 @@ DIRNAME="$(dirname -- "${BASH_SOURCE[0]}")"
 
 bash "$DIRNAME/patch-apply.sh"
 
-rm -f \
-  contracts/crosschain/axelar/AxelarGatewayAdapter.sol \
-  contracts/mocks/account/AccountZKEmailMock.sol \
-  contracts/mocks/utils/cryptography/ZKEmailGroth16VerifierMock.sol \
-  contracts/utils/cryptography/ZKEmailUtils.sol \
-  contracts/utils/cryptography/signers/SignerZKEmail.sol \
-  contracts/utils/cryptography/verifiers/ERC7913ZKEmailVerifier.sol
-
 sed -i'' -e "s/<package-version>/$VERSION/g" "package.json"
 git add package.json
 
@@ -33,6 +25,9 @@ fi
 # -b: use this build info file
 # -x: exclude contracts from transpilation entirely
 # -N: exclude from namespaces transformation
+#     The -N '@axelar-network/**/*' / -N 'wormhole-solidity-sdk/**/*' excludes below are only needed because
+#     add-namespace-struct keeps `internal` on a var moved into the ERC-7201 struct (invalid Solidity).
+#     (To remove when TODO(5) is done — TODO(1)-(4) live in post-transpile.js.)
 # -n: use namespaces
 # -q: partial transpilation (peer mode) so stateless files (interfaces/libraries) are left untranspiled
 #     and imported from a peer package instead. The peer path is path.join('@openzeppelin/community-contracts',
@@ -51,27 +46,16 @@ npx @openzeppelin/upgrade-safe-transpiler -D \
   -x 'contracts/proxy/**/*' \
   -N '@openzeppelin/contracts-upgradeable/**/*' \
   -N '@openzeppelin/contracts/**/*' \
+  -N '@axelar-network/**/*' \
+  -N 'wormhole-solidity-sdk/**/*' \
   -n \
   -N 'contracts/mocks/**/*' \
   -q '@openzeppelin/community-contracts'
 
-# Fix up dependency imports (see the -q note above). Two passes per file:
-#   1. Strip the "@openzeppelin/community-contracts/" prefix the peer step wrongly prepended to third-party
-#      stateless files. The (?!contracts/) lookahead protects OUR OWN files (which legitimately live under
-#      @openzeppelin/community-contracts/contracts/...), so only vanilla/axelar/wormhole imports are un-prefixed.
-#   2. Redirect the regenerated vanilla *Upgradeable contracts (transpiled here) to the published
-#      @openzeppelin/contracts-upgradeable. The (?:\.\./)* absorbs the relative form the generated
-#      mocks/WithInit.sol uses ("../../@openzeppelin/contracts/...Upgradeable.sol").
-find contracts -name '*.sol' -exec perl -pi -e '
-  s{"\@openzeppelin/community-contracts/(?!contracts/)([^"]*)"}{"$1"}g;
-  s{"(?:\.\./)*\@openzeppelin/contracts/([^"]*Upgradeable\.sol)"}{"\@openzeppelin/contracts-upgradeable/$1"}g;
-' {} +
-
-# The transpiler emits the regenerated dependency contracts at the repo root (./@openzeppelin/contracts,
-# and empty ./@axelar-network, ./wormhole-solidity-sdk for the stateless deps). We reuse the published
-# @openzeppelin/contracts-upgradeable via the redirect above and never ship these, so drop them — otherwise
-# they linger outside contracts/ and can shadow dependency resolution on local compiles.
-rm -rf ./@openzeppelin ./@axelar-network ./wormhole-solidity-sdk
+# Post-transpile fix-ups: discard the regenerated vanilla OZ copy, vendor Axelar/Wormhole under
+# contracts/vendor/, rewrite dependency imports, and drop the abstract DKIMRegistry WithInit wrapper.
+# See post-transpile.js for details.
+node "$DIRNAME/post-transpile.js"
 
 # delete compilation artifacts of vanilla code
 npm run clean

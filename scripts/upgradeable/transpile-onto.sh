@@ -17,7 +17,7 @@ bash scripts/upgradeable/transpile.sh
 commit="$(git rev-parse --short HEAD)"
 start_branch="$(git rev-parse --abbrev-ref HEAD)"
 
-sed -i'' -e 's/viaIR: false/viaIR: true/g' hardhat.config.js && git add hardhat.config.js
+sed -i'' -e 's/viaIR: argv.ir/viaIR: true/g' hardhat.config.js && git add hardhat.config.js
 
 git add contracts
 
@@ -51,6 +51,9 @@ if [[ -v SUBMODULE_REMOTE ]]; then
 fi
 
 git commit -m "Transpile $commit" --no-verify
+
+# Check transpiled output compiles
+npm run compile
 
 # return to original branch
 git checkout "$start_branch"
