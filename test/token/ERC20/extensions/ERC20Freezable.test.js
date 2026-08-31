@@ -257,4 +257,40 @@ describe('ERC20Freezable', function () {
         .withArgs(this.holder, 1n, 0);
     });
   });
+
+  describe('forced transfer (via ERC20Forcible)', function () {
+    beforeEach(async function () {
+      this.token = await ethers.deployContract('$ERC20FreezableMock', [name, symbol]);
+      await this.token.$_mint(this.holder, initialSupply);
+    });
+
+    it('unfreezes first: seizes frozen tokens and lowers the frozen amount to the new balance', async function () {
+      await this.token.$_setFrozen(this.holder, initialSupply); // fully frozen
+      const value = 30n;
+
+      // a normal transfer of frozen tokens is blocked...
+      await expect(this.token.connect(this.holder).transfer(this.recipient, value))
+        .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientUnfrozenBalance')
+        .withArgs(this.holder, value, 0n);
+
+      // ...but within the forced-transfer context it unfreezes first (emitting Frozen) then transfers
+      await this.token.setForced(true);
+      await expect(this.token.connect(this.holder).transfer(this.recipient, value))
+        .to.emit(this.token, 'Frozen')
+        .withArgs(this.holder, initialSupply - value)
+        .to.emit(this.token, 'Transfer')
+        .withArgs(this.holder, this.recipient, value);
+
+      await expect(this.token.frozen(this.holder)).to.eventually.equal(initialSupply - value);
+    });
+
+    it('does not let a forced self-transfer be used to unfreeze', async function () {
+      await this.token.$_setFrozen(this.holder, initialSupply);
+
+      await this.token.setForced(true);
+      await expect(this.token.connect(this.holder).transfer(this.holder, 1n))
+        .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientUnfrozenBalance')
+        .withArgs(this.holder, 1n, 0n);
+    });
+  });
 });

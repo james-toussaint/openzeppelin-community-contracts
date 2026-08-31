@@ -10,8 +10,10 @@ Set of extensions and utilities for tokens (e.g ERC-20, ERC-721, ERC-1155) and d
  * {ERC20Blocklist}: Extension of ERC20 with transfers and approvals that can be disabled by adding users into a blocklist.
  * {ERC20Collateral}: Oracle-agnostic extension of ERC20 that limits the total supply based on a collateral amount.
  * {ERC20Custodian}: Extension of ERC20 that implements an access-control agnostic approach to define a custodian that can freeze user's transfers and approvals.
+ * {ERC20Forcible}: Shared base seam that lets extensions detect and stand down during a forced transfer, so {ERC20Seizable} composes with restriction-based extensions like {ERC20Freezable} and {ERC20Restricted} without extra wiring.
  * {ERC20Freezable}: Extension of ERC20 that allows an authorized account to freeze a portion of an account's balance, preventing it from being transferred until unfrozen.
  * {ERC20Restricted}: Extension of ERC20 that allows implementing user account transfer restrictions (blocklist or allowlist) inspired by EIP-7943.
+ * {ERC20Seizable}: Extension of ERC20 that lets an authorized account seize (force-transfer) tokens from an account, bypassing the checks of composed extensions that honor {ERC20Forcible} (e.g. {ERC20Freezable}, {ERC20Restricted}).
  * {ERC20uRWA}: Extension of ERC20 according to EIP-7943, combining standard ERC-20 with RWA-specific features like account restrictions, asset freezing, and forced transfers.
  * {ERC4626Fees}: ERC4626 vault with fees on entry (deposit/mint) or exit (withdraw/redeem).
  * {ERC7540}: Implementation of ERC-7540 "Asynchronous ERC-4626 Tokenized Vaults", providing a base for vaults with asynchronous deposit and/or redemption flows.
@@ -36,9 +38,13 @@ Set of extensions and utilities for tokens (e.g ERC-20, ERC-721, ERC-1155) and d
 
 {{ERC20Custodian}}
 
+{{ERC20Forcible}}
+
 {{ERC20Freezable}}
 
 {{ERC20Restricted}}
+
+{{ERC20Seizable}}
 
 {{ERC20uRWA}}
 

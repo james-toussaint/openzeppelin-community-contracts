@@ -237,4 +237,28 @@ describe('ERC20Restricted', function () {
       });
     });
   });
+
+  describe('forced transfer (via ERC20Forcible)', function () {
+    beforeEach(async function () {
+      this.token = await ethers.deployContract('$ERC20RestrictedMock', [name, symbol]);
+      await this.token.$_mint(this.holder, initialSupply);
+    });
+
+    it('bypasses sender and recipient restriction checks', async function () {
+      await this.token.$_blockUser(this.holder);
+      await this.token.$_blockUser(this.recipient);
+
+      // a normal transfer is blocked...
+      await expect(this.token.connect(this.holder).transfer(this.recipient, 10n))
+        .to.be.revertedWithCustomError(this.token, 'ERC20UserRestricted')
+        .withArgs(this.holder);
+
+      // ...but within the forced-transfer context the restriction stands down on both sides
+      await this.token.setForced(true);
+      await expect(this.token.connect(this.holder).transfer(this.recipient, 10n))
+        .to.emit(this.token, 'Transfer')
+        .withArgs(this.holder, this.recipient, 10n);
+      await expect(this.token.balanceOf(this.recipient)).to.eventually.equal(10n);
+    });
+  });
 });

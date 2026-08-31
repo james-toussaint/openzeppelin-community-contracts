@@ -3,6 +3,7 @@
 pragma solidity ^0.8.26;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Forcible} from "./ERC20Forcible.sol";
 
 /**
  * @dev Extension of {ERC20} that allows to implement user account transfer restrictions
@@ -12,7 +13,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * a blocklist. Developers can override {canTransact} to check that `restriction == ALLOWED`
  * to implement an allowlist.
  */
-abstract contract ERC20Restricted is ERC20 {
+abstract contract ERC20Restricted is ERC20, ERC20Forcible {
     enum Restriction {
         DEFAULT, // User has no explicit restriction
         BLOCKED, // User is explicitly blocked
@@ -89,8 +90,11 @@ abstract contract ERC20Restricted is ERC20 {
         _setRestriction(account, Restriction.DEFAULT);
     }
 
-    /// @dev Checks if a user account is restricted. Reverts with {ERC20Restricted} if so.
+    /**
+     * @dev Checks if a user account is restricted. This check is bypassed during a forced transfer
+     * or reverts with {ERC20UserRestricted} if the account is restricted.
+     */
     function _checkRestriction(address account) internal view virtual {
-        require(canTransact(account), ERC20UserRestricted(account));
+        require(_isForcedTransfer() || canTransact(account), ERC20UserRestricted(account));
     }
 }
