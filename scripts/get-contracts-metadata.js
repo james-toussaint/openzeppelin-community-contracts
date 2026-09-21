@@ -1,10 +1,10 @@
-const fs = require('fs');
-const glob = require('glob');
-const match = require('micromatch');
-const path = require('path');
-const { findAll } = require('solidity-ast/utils');
+import fs from 'fs';
+import path from 'path';
+import { glob } from 'glob';
+import match from 'micromatch';
+import { findAll } from 'solidity-ast/utils.js';
 
-module.exports = function (
+export function getContractsMetadata(
   pattern = 'contracts/**/*.sol',
   skipPatterns = ['contracts/mocks/**/*.sol'],
   artifacts = [],
@@ -13,11 +13,12 @@ module.exports = function (
   // definitions with minimal IO operations.
   const metadata = Object.fromEntries(
     artifacts.flatMap(artifact => {
-      const { output: solcOutput } = require(path.resolve(__dirname, '..', artifact));
-      return Object.keys(solcOutput.contracts)
-        .filter(source => match.all(source, pattern) && !match.any(source, skipPatterns))
-        .map(source => [
-          source,
+      const { output: solcOutput } = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '..', artifact)));
+      return Object.keys(solcOutput?.contracts ?? {}) // Local source keys prefixed with `project/`
+        .map(source => [source, source.replace(/^project\//, '')]) // strip it so keys match unprefixed patterns and foundry fallback below
+        .filter(([, file]) => match.all(file, pattern) && !match.any(file, skipPatterns))
+        .map(([source, file]) => [
+          file,
           {
             pragma: Array.from(findAll('PragmaDirective', solcOutput.sources[source].ast))
               .find(({ literals }) => literals.at(0) == 'solidity')
@@ -52,4 +53,4 @@ module.exports = function (
     });
 
   return metadata;
-};
+}
