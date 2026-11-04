@@ -18,7 +18,7 @@ abstract contract ERC7540SyncDepositMockUpgradeable is Initializable, ERC7540Syn
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminRedeemUpgradeable) returns (uint256) {
-        return super._requestRedeem(shares, controller, owner, requestId);
+    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminRedeemUpgradeable) {
+        super._requestRedeem(shares, controller, owner, requestId);
     }
 }

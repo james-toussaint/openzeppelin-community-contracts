@@ -63,4 +63,19 @@ abstract contract ERC7540SyncRedeemUpgradeable is Initializable, ERC7540Upgradea
     function _asyncMaxRedeem(address /*owner*/) internal view virtual override returns (uint256) {
         revert();
     }
+
+    /// @dev Synchronous flows have no Requests: {_requestRedeem} reverts before using this value.
+    function _getRedeemRequestId(address /* controller */) internal virtual override returns (uint256) {
+        return 0;
+    }
+
+    /// @dev Synchronous flows have no Claimable requests.
+    function _totalClaimableRedeemAssets() internal view virtual override returns (uint256) {
+        return 0;
+    }
+
+    /// @dev Synchronous flows have no Claimable requests.
+    function _totalClaimableRedeemShares() internal view virtual override returns (uint256) {
+        return 0;
+    }
 }

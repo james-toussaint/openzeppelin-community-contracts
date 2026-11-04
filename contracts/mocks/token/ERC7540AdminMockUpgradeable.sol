@@ -23,8 +23,8 @@ abstract contract ERC7540AdminMockUpgradeable is Initializable, ERC7540AdminDepo
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminDepositUpgradeable) returns (uint256) {
-        return super._requestDeposit(assets, controller, owner, requestId);
+    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminDepositUpgradeable) {
+        super._requestDeposit(assets, controller, owner, requestId);
     }
 
     function _requestRedeem(
@@ -32,8 +32,8 @@ abstract contract ERC7540AdminMockUpgradeable is Initializable, ERC7540AdminDepo
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminRedeemUpgradeable) returns (uint256) {
-        return super._requestRedeem(shares, controller, owner, requestId);
+    ) internal virtual override(ERC7540Upgradeable, ERC7540AdminRedeemUpgradeable) {
+        super._requestRedeem(shares, controller, owner, requestId);
     }
 
     function _depositShareOrigin() internal view virtual override returns (address) {

@@ -45,12 +45,13 @@ import {MyERC7579SocialRecovery} from "@openzeppelin/community-contracts/mocks/d
 import {MyERC7786GatewaySource} from "@openzeppelin/community-contracts/mocks/docs/crosschain/MyERC7786GatewaySource.sol";
 import {ERC7739ECDSA} from "@openzeppelin/community-contracts/mocks/docs/utils/cryptography/ERC7739SignerECDSA.sol";
 import {MyContractDomain} from "@openzeppelin/community-contracts/mocks/docs/utils/cryptography/MyContractDomain.sol";
-import {ECDSAOwnedDKIMRegistry, AccessManager, UpgradeableBeacon, ERC721, ERC721Enumerable, ERC1155, AccountECDSAMock, AccountERC7579Mock, AccountERC7913Mock, ERC1271WalletMock, CallReceiverMock, ERC7913P256Verifier, ERC7913RSAVerifier, Create2} from "@openzeppelin/community-contracts/mocks/import.sol";
+import {ECDSAOwnedDKIMRegistry, AccessManager, UpgradeableBeacon, ERC721, ERC721Enumerable, ERC1155, AccountECDSAMock, AccountERC7579Mock, AccountERC7913Mock, ERC1271WalletMock, CallReceiverMock, ERC20Reentrant, ERC7913P256Verifier, ERC7913RSAVerifier, Create2} from "@openzeppelin/community-contracts/mocks/import.sol";
 import {ERC20CollateralMock} from "@openzeppelin/community-contracts/mocks/token/ERC20CollateralMock.sol";
 import {ERC20CustodianMock} from "@openzeppelin/community-contracts/mocks/token/ERC20CustodianMock.sol";
 import {ERC20uRWAMock} from "@openzeppelin/community-contracts/mocks/token/ERC20uRWAMock.sol";
 import {ERC7540AdminMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540AdminMock.sol";
 import {ERC7540DelayMock, ERC7540DelayShareOriginMock, ERC7540DelayShareDestinationMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540DelayMock.sol";
+import {ERC7540EpochMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540EpochMock.sol";
 import {ERC7540SyncDepositMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540SyncDepositMock.sol";
 import {ERC7540SyncMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540SyncMock.sol";
 import {ERC7540SyncRedeemMock} from "@openzeppelin/community-contracts/mocks/token/ERC7540SyncRedeemMock.sol";
@@ -69,6 +70,8 @@ import {ERC7540AdminDeposit} from "@openzeppelin/community-contracts/token/ERC20
 import {ERC7540AdminRedeem} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540AdminRedeem.sol";
 import {ERC7540DelayDeposit} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540DelayDeposit.sol";
 import {ERC7540DelayRedeem} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540DelayRedeem.sol";
+import {ERC7540EpochDeposit} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540EpochDeposit.sol";
+import {ERC7540EpochRedeem} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540EpochRedeem.sol";
 import {ERC7540SyncDeposit} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540SyncDeposit.sol";
 import {ERC7540SyncRedeem} from "@openzeppelin/community-contracts/token/ERC20/extensions/ERC7540SyncRedeem.sol";
 import {OnTokenTransferAdapter} from "@openzeppelin/community-contracts/token/OnTokenTransferAdapter.sol";

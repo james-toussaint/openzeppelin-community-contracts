@@ -40,6 +40,8 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
     /// @custom:storage-location erc7201:openzeppelin.storage.ERC7540AdminRedeem
     struct ERC7540AdminRedeemStorage {
         mapping(address controller => PendingRedeem) _redeems;
+        uint256 _totalClaimableAssets;
+        uint256 _totalClaimableShares;
     }
 
     // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.ERC7540AdminRedeem")) - 1)) & ~bytes32(uint256(0xff))
@@ -67,16 +69,21 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
         return true;
     }
 
+    /// @dev All the Requests of a controller are aggregated under `requestId = 0`.
+    function _getRedeemRequestId(address /* controller */) internal virtual override returns (uint256) {
+        return 0;
+    }
+
     /// @dev Records per-controller pending state before delegating to {ERC7540-_requestRedeem}.
     function _requestRedeem(
         uint256 shares,
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override returns (uint256) {
+    ) internal virtual override {
         ERC7540AdminRedeemStorage storage $ = _getERC7540AdminRedeemStorage();
         $._redeems[controller].pendingShares += shares;
-        return super._requestRedeem(shares, controller, owner, requestId);
+        super._requestRedeem(shares, controller, owner, requestId);
     }
 
     /**
@@ -84,13 +91,14 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
      *
      * The caller provides both `shares` and `assets`, locking the exchange rate at fulfillment time.
      * The fulfiller must ensure the vault holds enough underlying assets to cover the `assets` amount
-     * before calling this function.
+     * before calling this function (see {_isSolvent}).
      *
      * Emits a {RedeemClaimable} event.
      *
      * Requirements:
      *
      * * `shares` must not exceed the pending redeem amount for the `controller`.
+     * * The vault must hold enough assets to cover pending deposits and Claimable redeems, including this one.
      */
     function _fulfillRedeem(uint256 shares, uint256 assets, address controller) internal virtual {
         ERC7540AdminRedeemStorage storage $ = _getERC7540AdminRedeemStorage();
@@ -100,6 +108,9 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
         $._redeems[controller].pendingShares -= shares;
         $._redeems[controller].claimableShares += shares;
         $._redeems[controller].claimableAssets += assets;
+        $._totalClaimableShares += shares;
+        $._totalClaimableAssets += assets;
+        require(_isSolvent(), ERC7540InsufficientAssets());
 
         if (_redeemShareDestination() != address(0)) {
             _burnSharesOnRedeemFulfill(assets, shares);
@@ -122,6 +133,8 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
 
         $._redeems[controller].claimableAssets -= assets;
         $._redeems[controller].claimableShares -= shares;
+        $._totalClaimableAssets -= assets;
+        $._totalClaimableShares -= shares;
         return shares;
     }
 
@@ -139,6 +152,8 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
 
         $._redeems[controller].claimableAssets -= assets;
         $._redeems[controller].claimableShares -= shares;
+        $._totalClaimableAssets -= assets;
+        $._totalClaimableShares -= shares;
         return assets;
     }
 
@@ -170,5 +185,17 @@ abstract contract ERC7540AdminRedeemUpgradeable is Initializable, ERC7540Upgrade
     function _asyncMaxRedeem(address owner) internal view virtual override returns (uint256) {
         ERC7540AdminRedeemStorage storage $ = _getERC7540AdminRedeemStorage();
         return $._redeems[owner].claimableShares;
+    }
+
+    /// @dev Assets owed to fulfilled but unclaimed redeems.
+    function _totalClaimableRedeemAssets() internal view virtual override returns (uint256) {
+        ERC7540AdminRedeemStorage storage $ = _getERC7540AdminRedeemStorage();
+        return $._totalClaimableAssets;
+    }
+
+    /// @dev Shares of fulfilled but unclaimed redeems.
+    function _totalClaimableRedeemShares() internal view virtual override returns (uint256) {
+        ERC7540AdminRedeemStorage storage $ = _getERC7540AdminRedeemStorage();
+        return $._totalClaimableShares;
     }
 }

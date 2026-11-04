@@ -63,4 +63,19 @@ abstract contract ERC7540SyncDepositUpgradeable is Initializable, ERC7540Upgrade
     function _asyncMaxMint(address /*owner*/) internal view virtual override returns (uint256) {
         revert();
     }
+
+    /// @dev Synchronous flows have no Requests: {_requestDeposit} reverts before using this value.
+    function _getDepositRequestId(address /* controller */) internal virtual override returns (uint256) {
+        return 0;
+    }
+
+    /// @dev Synchronous flows have no Claimable requests.
+    function _totalClaimableDepositAssets() internal view virtual override returns (uint256) {
+        return 0;
+    }
+
+    /// @dev Synchronous flows have no Claimable requests.
+    function _totalClaimableDepositShares() internal view virtual override returns (uint256) {
+        return 0;
+    }
 }

@@ -34,8 +34,8 @@ abstract contract ERC7540DelayMockUpgradeable is Initializable, ERC7540DelayDepo
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override(ERC7540Upgradeable, ERC7540DelayDepositUpgradeable) returns (uint256) {
-        return super._requestDeposit(assets, controller, owner, requestId);
+    ) internal virtual override(ERC7540Upgradeable, ERC7540DelayDepositUpgradeable) {
+        super._requestDeposit(assets, controller, owner, requestId);
     }
 
     function _requestRedeem(
@@ -43,8 +43,8 @@ abstract contract ERC7540DelayMockUpgradeable is Initializable, ERC7540DelayDepo
         address controller,
         address owner,
         uint256 requestId
-    ) internal virtual override(ERC7540Upgradeable, ERC7540DelayRedeemUpgradeable) returns (uint256) {
-        return super._requestRedeem(shares, controller, owner, requestId);
+    ) internal virtual override(ERC7540Upgradeable, ERC7540DelayRedeemUpgradeable) {
+        super._requestRedeem(shares, controller, owner, requestId);
     }
 }
 

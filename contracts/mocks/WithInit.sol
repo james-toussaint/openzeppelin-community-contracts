@@ -304,6 +304,13 @@ contract ERC7540DelayShareDestinationMockUpgradeableWithInit is ERC7540DelayShar
         __ERC7540DelayShareDestinationMock_init();
     }
 }
+import {ERC7540EpochMockUpgradeable} from "./token/ERC7540EpochMockUpgradeable.sol";
+
+contract ERC7540EpochMockUpgradeableWithInit is ERC7540EpochMockUpgradeable {
+    constructor(address tmpShareHolder) payable initializer {
+        __ERC7540EpochMock_init(tmpShareHolder);
+    }
+}
 import {ERC7540SyncDepositMockUpgradeable} from "./token/ERC7540SyncDepositMockUpgradeable.sol";
 
 contract ERC7540SyncDepositMockUpgradeableWithInit is ERC7540SyncDepositMockUpgradeable {
